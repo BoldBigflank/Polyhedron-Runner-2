@@ -16,13 +16,21 @@ public class Vector3Time
 	}
 	
 	public string ToJson(){
+		 float xAng = Vector3.Angle(position.normalized, Vector3.back);
+		 float yAng = Vector3.Angle(position.normalized, Vector3.right);
+		
 		return "{" + 
 			"\"time\":" + time.ToString ("F2") + "," + 
 			"\"position\":{" +
 				"\"x\":" + position.x.ToString ("F2") + ", " +
 				"\"y\":" + position.y.ToString ("F2") + ", " +
 				"\"z\":" + position.z.ToString ("F2") + 
-			"}" + 
+			"}," + 
+			"\"rotation\":{" +
+				"\"x\":" + xAng.ToString ("F2") + ", " +
+				"\"y\":" + yAng.ToString ("F2") + 
+				"}" + 
+				
 		"}";
 	}
 }
@@ -46,6 +54,7 @@ public class RecordOrientationScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		if(!gameManager.GetComponent<GameManagerScript>().recordAudio) return;
 		if(Input.touches.Length > 0) {
 			Touch t = Input.GetTouch(0);
 			if(t.phase == TouchPhase.Began){
@@ -54,7 +63,7 @@ public class RecordOrientationScript : MonoBehaviour {
 			}
 			if(t.deltaTime > 1.0f){
 				audio.Stop ();
-				SaveFile ("output");
+				SaveFile ("output", audio.time);
 			}
 		}
 		
@@ -67,7 +76,7 @@ public class RecordOrientationScript : MonoBehaviour {
 		// Right Clicking
 		if(Input.GetMouseButtonDown(1)){
 			audio.Pause();
-			SaveFile ("output");
+			SaveFile ("output", audio.time);
 		}
 	}
 	
@@ -81,10 +90,13 @@ public class RecordOrientationScript : MonoBehaviour {
 		Debug.Log (v.ToJson());
 	}
 	
-	void SaveFile(string fileName){
+	void SaveFile(string fileName, float totalTime){
+		fileName = "Assets/Levels/" + fileName;
 		string output = "";
 		output += "{";
-		output += "\"positions\":[";
+		output += "\"song\":\"" + audio.clip.name + "\",";
+		output += "\"time\":" + totalTime + ",";
+		output += "\"spheres\":[";
 		string outputPositions = "";
 		for(int x = 0; x < positions.Count; x++){
 			if(outputPositions.Length > 0) outputPositions += ", ";
